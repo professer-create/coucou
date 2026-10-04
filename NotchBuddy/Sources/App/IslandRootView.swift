@@ -492,6 +492,16 @@ struct IslandHeader: View {
                 #endif
                 HStack(spacing: 14) {
                     Button(action: {
+                        NotificationCenter.default.post(name: .islandCollapse, object: nil)
+                    }) {
+                        Image(systemName: "chevron.up")
+                            .font(.system(size: 13, weight: .medium))
+                            .foregroundColor(Color(hex: "#8E939C"))
+                    }
+                    .buttonStyle(.plain)
+                    .help("Minimize")
+
+                    Button(action: {
                         withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
                             state.view = .settings
                         }

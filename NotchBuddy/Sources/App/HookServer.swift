@@ -374,6 +374,10 @@ final class HookServer: @unchecked Sendable {
             agentId = "integration_claude"
             isExternalAgent = false
             state.claudeHostIsDesktop = isClaudeDesktop
+            if let idx = state.tasks.firstIndex(where: { $0.id == agentId }) {
+                let hostId = payload["claude_host_session_id"] as? String ?? ""
+                state.tasks[idx].hostSessionId = isClaudeDesktop && ClaudeDesktopLink.isValid(hostId) ? hostId : nil
+            }
         } else {
             nbLog("Ignored \(name) from \(termProgram.isEmpty ? bundleId : termProgram) (\(projectName))")
             return
@@ -1994,6 +1998,7 @@ def main():
         payload.setdefault('iterm_session_id', env.get('ITERM_SESSION_ID', ''))
         payload.setdefault('term_session_id', env.get('TERM_SESSION_ID', ''))
         payload.setdefault('bundle_id', env.get('__CFBundleIdentifier', ''))
+        payload.setdefault('claude_host_session_id', env.get('CLAUDE_CODE_HOST_SESSION_ID', ''))
         if 'cwd' not in payload or not payload['cwd']:
             paths = payload.get('workspacePaths') or payload.get('workspace_roots', [])
             if isinstance(paths, list) and paths:
@@ -2057,6 +2062,7 @@ def main():
     payload.setdefault('iterm_session_id', env.get('ITERM_SESSION_ID', ''))
     payload.setdefault('term_session_id', env.get('TERM_SESSION_ID', ''))
     payload.setdefault('bundle_id', env.get('__CFBundleIdentifier', ''))
+    payload.setdefault('claude_host_session_id', env.get('CLAUDE_CODE_HOST_SESSION_ID', ''))
     if 'cwd' not in payload or not payload['cwd']:
         paths = payload.get('workspacePaths') or payload.get('workspace_roots', [])
         if isinstance(paths, list) and paths:
@@ -2261,6 +2267,7 @@ def main():
         payload.setdefault('iterm_session_id', env.get('ITERM_SESSION_ID', ''))
         payload.setdefault('term_session_id', env.get('TERM_SESSION_ID', ''))
         payload.setdefault('bundle_id', env.get('__CFBundleIdentifier', ''))
+        payload.setdefault('claude_host_session_id', env.get('CLAUDE_CODE_HOST_SESSION_ID', ''))
         if 'cwd' not in payload or not payload['cwd']:
             paths = payload.get('workspacePaths') or payload.get('workspace_roots', [])
             if isinstance(paths, list) and paths:
@@ -2323,6 +2330,7 @@ def main():
     payload.setdefault('iterm_session_id', env.get('ITERM_SESSION_ID', ''))
     payload.setdefault('term_session_id', env.get('TERM_SESSION_ID', ''))
     payload.setdefault('bundle_id', env.get('__CFBundleIdentifier', ''))
+    payload.setdefault('claude_host_session_id', env.get('CLAUDE_CODE_HOST_SESSION_ID', ''))
     if 'cwd' not in payload or not payload['cwd']:
         paths = payload.get('workspacePaths') or payload.get('workspace_roots', [])
         if isinstance(paths, list) and paths:

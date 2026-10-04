@@ -173,7 +173,11 @@ struct OverviewView: View {
         switch task.id {
         case "integration_claude":
             if state.claudeHostIsDesktop {
-                openClaudeDesktop()
+                if let hostId = task.hostSessionId {
+                    ClaudeDesktopLink.open(sessionId: hostId)
+                } else {
+                    openClaudeDesktop()
+                }
                 return
             }
             let vscodeBundleId = "com.microsoft.VSCode"
@@ -358,7 +362,12 @@ struct QuestionView: View {
                                 .font(.system(size: 10))
                                 .foregroundColor(Color(hex: "#6B7079"))
                         }
-                        Button("Reply in terminal") { HookServer.shared.sendQuestionAsk() }
+                        let desktopChat = state.claudeHostIsDesktop
+                            ? state.tasks.first(where: { $0.id == "integration_claude" })?.hostSessionId : nil
+                        Button(desktopChat == nil ? "Reply in terminal" : "Reply in Claude") {
+                            HookServer.shared.sendQuestionAsk()
+                            if let hostId = desktopChat { ClaudeDesktopLink.open(sessionId: hostId) }
+                        }
                             .buttonStyle(.plain)
                             .font(.system(size: 10))
                             .foregroundColor(Color(hex: "#6B7079"))
@@ -554,6 +563,12 @@ struct FinishedView: View {
                     .truncationMode(.tail)
                 HStack(spacing: 8) {
                     #if !APPSTORE
+                    if let hostId = state.focusTask?.hostSessionId {
+                        PrimaryButton("Open chat") {
+                            ClaudeDesktopLink.open(sessionId: hostId)
+                            NotificationCenter.default.post(name: .islandCollapse, object: nil)
+                        }
+                    } else {
                     PrimaryButton("Open terminal") {
                         let terminalBundleIds = ["com.apple.Terminal", "com.googlecode.iterm2", "net.kovidgoyal.kitty", "com.mitchellh.ghostty"]
                         let activated = terminalBundleIds.compactMap { id in
@@ -563,6 +578,7 @@ struct FinishedView: View {
                             NSWorkspace.shared.open(URL(fileURLWithPath: "/System/Applications/Utilities/Terminal.app"))
                         }
                         NotificationCenter.default.post(name: .islandCollapse, object: nil)
+                    }
                     }
                     #endif
                     SecondaryButton("OK") {
@@ -1872,7 +1888,13 @@ struct IntegrationCardView: View {
 
                 HStack(spacing: 8) {
                     if task.id == "integration_claude" && appState.claudeHostIsDesktop {
-                        Button("Open Claude") { openClaudeDesktop() }
+                        Button(task.hostSessionId == nil ? "Open Claude" : "Open chat") {
+                            if let hostId = task.hostSessionId {
+                                ClaudeDesktopLink.open(sessionId: hostId)
+                            } else {
+                                openClaudeDesktop()
+                            }
+                        }
                             .font(.system(size: 11, weight: .medium))
                             .foregroundColor(Color(hex: task.color).opacity(0.7))
                             .buttonStyle(.plain)
@@ -4677,5 +4699,23 @@ func openClaudeDesktop() {
         app.activate(options: .activateIgnoringOtherApps)
     } else if let url = NSWorkspace.shared.urlForApplication(withBundleIdentifier: id) {
         NSWorkspace.shared.openApplication(at: url, configuration: .init(), completionHandler: nil)
+    }
+}
+
+/// Deep links into a Claude desktop app Code session.
+enum ClaudeDesktopLink {
+    /// Same shape the desktop app accepts for `claude://code/continue?session=`.
+    static func isValid(_ id: String) -> Bool {
+        id.range(of: #"^local_[A-Za-z0-9-]{1,64}$"#, options: .regularExpression) != nil
+    }
+
+    @MainActor
+    static func open(sessionId: String) {
+        guard isValid(sessionId),
+              let url = URL(string: "claude://code/continue?session=\(sessionId)&source=url_external") else {
+            openClaudeDesktop()
+            return
+        }
+        NSWorkspace.shared.open(url)
     }
 }

@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.1.8 — October 4, 2026
+
+- Open the exact chat: for Claude desktop app sessions, the "Claude Code finished" card shows **Open chat** instead of Open terminal, and it opens that same session in the Claude app. Clicking the Claude pill and "Reply in Claude" on a question do the same
+- Minimize button (chevron) in the island header: collapses the open island or notification right away instead of waiting for it to shrink on its own
+
 ## 0.1.7 — October 4, 2026
 
 - Claude desktop app support: sessions from the Code tab of the Claude desktop app now show up in the notch, with live activity, permission approvals and questions. Before, their hook events were ignored because they come from no terminal or editor

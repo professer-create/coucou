@@ -60,6 +60,7 @@ struct AgentTask: Identifiable, Equatable {
     var pillBadge: PillBadge? = nil  // alert badge shown on pill when not focused
     var sessionCwd: String?  = nil  // last known working directory (Claude Code sessions)
     var finalLine: String?   = nil  // last assistant message shown as static text after Stop
+    var hostSessionId: String? = nil  // Claude desktop app session ("local_…"), for opening that chat
 }
 
 enum AgentSource: Equatable {
