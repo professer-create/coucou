@@ -172,6 +172,10 @@ struct OverviewView: View {
         guard let task else { return }
         switch task.id {
         case "integration_claude":
+            if state.claudeHostIsDesktop {
+                openClaudeDesktop()
+                return
+            }
             let vscodeBundleId = "com.microsoft.VSCode"
             if let app = NSWorkspace.shared.runningApplications.first(where: { $0.bundleIdentifier == vscodeBundleId }) {
                 app.activate(options: .activateIgnoringOtherApps)
@@ -1867,7 +1871,12 @@ struct IntegrationCardView: View {
                 .padding(.top, 2)
 
                 HStack(spacing: 8) {
-                    if task.id == "integration_claude" {
+                    if task.id == "integration_claude" && appState.claudeHostIsDesktop {
+                        Button("Open Claude") { openClaudeDesktop() }
+                            .font(.system(size: 11, weight: .medium))
+                            .foregroundColor(Color(hex: task.color).opacity(0.7))
+                            .buttonStyle(.plain)
+                    } else if task.id == "integration_claude" {
                         Button("Open Visual Studio Code") { openVSCode() }
                             .font(.system(size: 11, weight: .medium))
                             .foregroundColor(Color(hex: task.color).opacity(0.7))
@@ -3648,7 +3657,8 @@ struct AgentPill: View {
 
     // VS Code pill always shows "VS Code" label regardless of active project name
     private var displayName: String {
-        task.id == "integration_claude" ? "VS Code" : task.name
+        guard task.id == "integration_claude" else { return task.name }
+        return AppState.shared.claudeHostIsDesktop ? "Claude" : "VS Code"
     }
 
     var body: some View {
@@ -4656,5 +4666,16 @@ extension Color {
             green: min(1, Double(components.greenComponent) + amount),
             blue: min(1, Double(components.blueComponent) + amount)
         )
+    }
+}
+
+/// Brings the Claude desktop app to the front, launching it if needed.
+@MainActor
+func openClaudeDesktop() {
+    let id = HookServer.claudeDesktopBundleId
+    if let app = NSWorkspace.shared.runningApplications.first(where: { $0.bundleIdentifier == id }) {
+        app.activate(options: .activateIgnoringOtherApps)
+    } else if let url = NSWorkspace.shared.urlForApplication(withBundleIdentifier: id) {
+        NSWorkspace.shared.openApplication(at: url, configuration: .init(), completionHandler: nil)
     }
 }

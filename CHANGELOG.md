@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.7 — October 4, 2026
+
+- Claude desktop app support: sessions from the Code tab of the Claude desktop app now show up in the notch, with live activity, permission approvals and questions. Before, their hook events were ignored because they come from no terminal or editor
+- When the latest session comes from the Claude desktop app, the pill is labelled "Claude" and clicking it (or "Open Claude") brings the Claude app to the front
+- Plan usage without the status line relay: Coucou reads the usage the Claude desktop app already fetched (from its local cache, no token or network call) and shows the 5-hour and weekly limits plus per-model weekly limits in the plan card. Needs `zstd` (`brew install zstd`) or Python 3.14+
+
 ## 0.1.6 — October 4, 2026
 
 - Mochi on the desktop: drag him out of the notch and drop him anywhere on your desktop. He hangs out there, follows your cursor with his eyes, wears his outfit and dances to your music (#198)

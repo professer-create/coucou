@@ -2,17 +2,24 @@ import Foundation
 
 // MARK: - Plan window
 
-struct PlanWindow: Codable {
+struct PlanWindow: Codable, Equatable {
     let usedPct: Double   // 0–100, clamped
     let resetsAt: Date
 }
 
 // MARK: - Plan usage
 
-struct PlanUsage: Codable {
+struct PlanUsage: Codable, Equatable {
     var fiveHour: PlanWindow?
     var sevenDay: PlanWindow?
     var updatedAt: Date
+    /// Per-model weekly limits (e.g. one model's own cap), from the Claude desktop app.
+    var scoped: [ScopedPlanWindow]? = nil
+}
+
+struct ScopedPlanWindow: Codable, Equatable {
+    let name: String
+    let window: PlanWindow
 }
 
 // MARK: - Parsing + helpers (Foundation-only, no AppKit/SwiftUI)

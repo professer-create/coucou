@@ -487,7 +487,7 @@ struct SettingsView: View {
 
         GroupBox("Plan usage") {
             VStack(alignment: .leading, spacing: 10) {
-                Text("Shows your Claude plan usage (5-hour and weekly limits) in the notch header. Coucou adds a status line relay to ~/.claude/settings.json. If you already have a status line, it keeps working as before. Pro and Max plans only.")
+                Text("Shows your Claude plan usage (5-hour and weekly limits) in the notch header. Coucou adds a status line relay to ~/.claude/settings.json. If you already have a status line, it keeps working as before. Pro and Max plans only. With the Claude desktop app installed, Coucou also reads the usage the app already fetched (including per-model weekly limits), so no relay is needed.")
                     .font(.system(size: 11))
                     .foregroundColor(.secondary)
                     .fixedSize(horizontal: false, vertical: true)
@@ -495,7 +495,7 @@ struct SettingsView: View {
                     get: { state.showPlanInNotch || planTogglePending },
                     set: { on in
                         if on {
-                            if state.planRelayInstalled {
+                            if state.planRelayInstalled || state.desktopUsageAvailable {
                                 state.showPlanInNotch = true
                             } else {
                                 planTogglePending = true

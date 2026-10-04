@@ -10,6 +10,7 @@ import CryptoKit
 
 final class HookServer: @unchecked Sendable {
     static let shared = HookServer()
+    static let claudeDesktopBundleId = "com.anthropic.claudefordesktop"
 
     // Support directory paths
     static var supportDir: URL {
@@ -345,12 +346,14 @@ final class HookServer: @unchecked Sendable {
         let isVSCodeEditor = !isCursorEditor && (
             termProgram.lowercased().contains("vscode") ||
             bundleId.lowercased().contains("vscode"))
+        // Claude desktop app (Code tab) runs Claude Code with no terminal attached.
+        let isClaudeDesktop = bundleId.lowercased() == Self.claudeDesktopBundleId
 
         // Routing:
         // • "codex" → agent_codex (GitHub build only: workspace pill, approvals in the notch)
         // • other valid coucou_agent → external pill (fire-and-forget, no approval card)
         // • Cursor bundle ID → agent_cursor
-        // • VS Code → integration_claude
+        // • VS Code or the Claude desktop app → integration_claude
         #if !APPSTORE
         let isCodexEvent = rawAgent == "codex"
         #else
@@ -367,9 +370,10 @@ final class HookServer: @unchecked Sendable {
         } else if isCursorEditor {
             agentId = "agent_cursor"
             isExternalAgent = false
-        } else if isVSCodeEditor {
+        } else if isVSCodeEditor || isClaudeDesktop {
             agentId = "integration_claude"
             isExternalAgent = false
+            state.claudeHostIsDesktop = isClaudeDesktop
         } else {
             nbLog("Ignored \(name) from \(termProgram.isEmpty ? bundleId : termProgram) (\(projectName))")
             return
@@ -617,6 +621,8 @@ final class HookServer: @unchecked Sendable {
         let isVSCodeEditor = !isCursorEditor && (
             termProgram.lowercased().contains("vscode") ||
             bundleId.lowercased().contains("vscode"))
+        // Claude desktop app (Code tab) runs Claude Code with no terminal attached.
+        let isClaudeDesktop = bundleId.lowercased() == Self.claudeDesktopBundleId
 
         // Codex gets the same approval card as Claude Code / Cursor (GitHub build only).
         // Other external agents (any other coucou_agent) answer immediately with "ask"
@@ -643,7 +649,7 @@ final class HookServer: @unchecked Sendable {
         } else {
             pillId = "integration_claude"
         }
-        guard isCodexRequest || isCursorEditor || isVSCodeEditor else {
+        guard isCodexRequest || isCursorEditor || isVSCodeEditor || isClaudeDesktop else {
             Task.detached { [weak self] in
                 self?.sendLine(fd: fd, text: #"{"permissionDecision":"ask"}"#)
                 close(fd)
@@ -793,6 +799,8 @@ final class HookServer: @unchecked Sendable {
         let isVSCodeEditor = !isCursorEditor && (
             termProgram.lowercased().contains("vscode") ||
             bundleId.lowercased().contains("vscode"))
+        // Claude desktop app (Code tab) runs Claude Code with no terminal attached.
+        let isClaudeDesktop = bundleId.lowercased() == Self.claudeDesktopBundleId
         #if !APPSTORE
         let isCodexRequest = rawAgent == "codex"
         #else
@@ -806,7 +814,7 @@ final class HookServer: @unchecked Sendable {
         } else {
             pillId = "integration_claude"
         }
-        guard isCodexRequest || isCursorEditor || isVSCodeEditor else {
+        guard isCodexRequest || isCursorEditor || isVSCodeEditor || isClaudeDesktop else {
             Task.detached { [weak self] in
                 self?.sendLine(fd: fd, text: #"{"permissionDecision":"ask"}"#)
                 close(fd)

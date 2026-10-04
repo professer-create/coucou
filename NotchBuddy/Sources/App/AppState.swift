@@ -14,6 +14,8 @@ final class AppState: ObservableObject {
     // Tasks
     @Published var tasks: [AgentTask] = []
     @Published var focusId: String? = nil
+    /// True when the latest Claude Code event came from the Claude desktop app rather than VS Code.
+    @Published var claudeHostIsDesktop = false
 
     // Bot state override
     @Published var stateOverride: BotState? = nil
@@ -382,6 +384,8 @@ final class AppState: ObservableObject {
     }
     // Cached relay-installed state — updated at launch, after install/uninstall, on Settings open
     @Published var planRelayInstalled: Bool = false
+    /// The Claude desktop app is installed, so plan usage can be read from its cache.
+    let desktopUsageAvailable = ClaudeDesktopUsage.isAvailable
     // Transient — reset when island closes or view changes
     @Published var showingPlanDetail: Bool = false
 

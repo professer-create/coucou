@@ -101,6 +101,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         ResendPoller.shared.start()
         GithubPoller.shared.start()
         StripePoller.shared.start()
+        #if !APPSTORE
+        ClaudeDesktopUsagePoller.shared.start()
+        #endif
         CalcomPoller.shared.start()
         NotionPoller.shared.start()
         NotificationCenter.default.addObserver(self, selector: #selector(openSettingsFromNotification(_:)),

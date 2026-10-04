@@ -32,6 +32,9 @@ struct ClaudePlanCardView: View {
             VStack(alignment: .leading, spacing: 5) {
                 GaugeRowView(label: "5 hours", window: usage?.fiveHour, now: now)
                 GaugeRowView(label: "Week",    window: usage?.sevenDay,  now: now, weekly: true)
+                ForEach(usage?.scoped ?? [], id: \.name) { s in
+                    GaugeRowView(label: s.name, window: s.window, now: now, weekly: true)
+                }
             }
             .padding(.top, 8)
             .padding(.leading, 108)
@@ -48,7 +51,7 @@ struct ClaudePlanCardView: View {
     }
 
     private var subtitleText: String {
-        guard let usage else { return "Waiting for a Claude Code reply" }
+        guard let usage else { return "Waiting for usage data" }
         let diff = now.timeIntervalSince(usage.updatedAt)
         if diff < 60 { return "just now" }
         let mins = Int(diff / 60)
@@ -78,6 +81,7 @@ private struct GaugeRowView: View {
             Text(label)
                 .font(.system(size: 11))
                 .foregroundColor(Color(hex: "#6B7079"))
+                .lineLimit(1)
                 .frame(width: 40, alignment: .leading)
             if let w = window {
                 let pct = ClaudePlanGauge.effectivePct(w)
